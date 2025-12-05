@@ -15,7 +15,7 @@ This repository contains the instructions to run a NEAR protocol network benchma
 
 ### Cost
 
-The estimated cost to run the benchmark is around $200 per hour.
+The estimated cost to run the benchmark is around $700 per hour.
 
 Estimated cost of one node is:
 
@@ -47,7 +47,7 @@ The network runs on google cloud VMs. We provide the terraform to create the VMs
 
 ### 2. Clone the repositories
 ```bash
-git clone https://github.com/Near-One/infra-ops # TODO - change to the public one million repository
+git clone https://github.com/near/one-million-tps
 
 git clone https://github.com/near/nearcore
 cd nearcore
