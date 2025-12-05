@@ -1,0 +1,114 @@
+#!/bin/bash
+# Initialization script for a mocknet node.
+set -exo pipefail
+
+NEAR_DIR=/home/ubuntu/.near
+NEAR_DATA_DIR="$NEAR_DIR/data"
+GCS_KEY='${gcs_key}'
+EMPTY_DISK='${empty_disk}'
+# Resolve the attached data disk device path. Prefer the named by-id symlink when available,
+# otherwise fall back to the first attached persistent data disk.
+if [ -n "${disk_name}" ] && [ -e "/dev/disk/by-id/google-${disk_name}" ]; then
+  DISK_DEVICE="/dev/disk/by-id/google-${disk_name}"
+else
+  DISK_DEVICE="/dev/disk/by-id/google-persistent-disk-1"
+fi
+BTRFS_ROOT_PATH='/mnt/btrfs-root'
+
+#If already have $NEAR_DATA_DIR then initial setup was already done
+if [ -d "$NEAR_DATA_DIR"  ]; then
+  exit 0;
+fi
+
+function format_disk_if_empty {
+  # Build the disk if it is empty.
+  SUBVOLUME_NAME='current'
+  if [ "$EMPTY_DISK" = "false" ]; then
+    echo "Disk is not empty. Skipping disk formatting."
+    return
+  fi
+  echo "Formatting empty disk..."
+  sudo mkfs.btrfs -f $DISK_DEVICE
+  # mount the disk
+  mkdir -p $BTRFS_ROOT_PATH
+  sudo mount $DISK_DEVICE $BTRFS_ROOT_PATH
+  # create a subvolume `current`
+  sudo btrfs subvolume create $BTRFS_ROOT_PATH/$SUBVOLUME_NAME
+  sudo chown -R ubuntu $BTRFS_ROOT_PATH/$SUBVOLUME_NAME
+  # make it default
+  sudo btrfs subvolume set-default $(btrfs subvolume list $BTRFS_ROOT_PATH | grep $SUBVOLUME_NAME | awk '{print $2}') $BTRFS_ROOT_PATH
+  # unmount
+  sudo umount $BTRFS_ROOT_PATH
+}
+
+function initial_setup_genesis_disk {
+  # Ensure we can see the attached disk.
+  until ls $DISK_DEVICE
+  do
+      echo "looking for $DISK_DEVICE..."
+      sleep 1
+  done
+
+  # Create a mount point.
+  sudo mkdir -p $NEAR_DIR
+  if mountpoint -q $NEAR_DIR; then
+    echo "$NEAR_DIR is already mounted."
+    return
+  fi
+
+  format_disk_if_empty
+
+  # ... and mount.
+  sudo mount -o discard,defaults $DISK_DEVICE $NEAR_DIR
+
+  # Make ubuntu owner of near dir
+  sudo chown -R ubuntu $NEAR_DIR
+  # Without this command, the disk remains the size of the image.
+  # Normally you want to mount the image into a bigger disk.
+  # Check format
+  if mount | grep " on $NEAR_DIR " | grep -q 'btrfs'; then
+    echo "$NEAR_DIR is mounted as btrfs"
+    sudo btrfs filesystem resize max $NEAR_DIR
+    # mount root in /mnt/btrfs-root for control.
+    sudo mkdir -p $BTRFS_ROOT_PATH
+    sudo mount -o subvolid=5 $DISK_DEVICE $BTRFS_ROOT_PATH
+    echo "$DISK_DEVICE $BTRFS_ROOT_PATH btrfs subvolid=5,discard,defaults,nofail 0 2" | sudo tee -a /etc/fstab > /dev/null
+  else
+    echo "$NEAR_DIR is NOT mounted as btrfs"
+    sudo resize2fs $DISK_DEVICE
+  fi
+
+  sudo echo "$DISK_DEVICE $NEAR_DIR auto discard,defaults,nofail 0 2" >> /etc/fstab
+}
+
+function install_near_cli {
+  sudo apt -y install npm nodejs
+  sudo npm install -g npm
+  sudo npm install -g near-cli
+}
+
+function initialize_ubuntu {
+  sudo apt-get clean
+  sudo apt-get update -y
+  sudo apt -o APT::Get::Always-Include-Phased-Updates=false -o Dpkg::Options::="--force-confnew" upgrade -y
+  sudo apt -y install rsync tmux less vim python3-pip unzip psmisc httpie jq
+  sudo -u ubuntu python3 -m pip install pip --upgrade
+  sudo -u ubuntu python3 -m pip install virtualenv --upgrade
+
+  sudo sysctl -w net.core.rmem_max=8388608
+  sudo sysctl -w net.core.wmem_max=8388608
+  sudo sysctl -w net.ipv4.tcp_rmem='4096 87380 8388608'
+  sudo sysctl -w net.ipv4.tcp_wmem='4096 16384 8388608'
+  sudo sysctl -w net.ipv4.tcp_slow_start_after_idle=0
+  sudo sysctl -w net.ipv4.tcp_congestion_control=bbr
+  sudo sysctl -w net.core.default_qdisc=fq
+  sudo sysctl -w net.ipv4.tcp_mtu_probing=1
+  sudo sysctl -w net.ipv4.tcp_max_syn_backlog=8096
+
+  # Installing near-cli and its dependencies takes several minutes but it's useful for debugging the contracts.
+  # Enable only if you need it.
+  # install_near_cli
+}
+
+initial_setup_genesis_disk
+initialize_ubuntu
