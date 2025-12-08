@@ -40,7 +40,7 @@ Note that starting up the network using the following instructions takes about a
 The network runs on google cloud VMs. We provide the terraform to create the VMs, but there are some setup steps needed before running terraform:
 
 1. Acquire a google cloud account
-2. Create a google cloud project which will contain the network.
+2. Create a google cloud project which will contain the network, give the project a unique name that's unlikely to conflict with others.
 3. Enable Compute Engine API for this project
 4. Install the `gcloud` CLI tool and connect it to the google account. You should be able to run `gcloud compute instances list --project <GOOGLE CLOUD PROJECT NAME>`
 5. Install terraform
@@ -137,7 +137,7 @@ export CASE=cases/forknet/70-shards/
 export BINARY=files/neard # Location of built binary
 export MOCKNET_PROJECT=<GOOGLE CLOUD PROJECT NAME>
 export MOCKNET_ID=onemilnet-bench # This is the default value, should correspond to mocknet_id in main.tf.
-export MOCKNET_STORE_PATH=gs://near-onemil-artefact-store # This bucket must also match terraform value in main.tf.
+export MOCKNET_STORE_PATH="gs://near-$MOCKNET_PROJECT-artefact-store"
 export NEAR_BENCHMARK_CASES_DIR=scripts
 export NEARD_BINARY_URL="https://storage.googleapis.com/${MOCKNET_STORE_PATH#gs://}/neard"
 ```

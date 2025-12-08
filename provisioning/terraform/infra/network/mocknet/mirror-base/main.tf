@@ -28,7 +28,7 @@ resource "google_compute_firewall" "network_rules" {
 }
 
 resource "google_storage_bucket" "near_onemil_artefact_store" {
-  name     = "near-onemil-artefact-store"
+  name     = "near-${var.project_id}-artefact-store"
   location = "us-central1"
 
   storage_class = "STANDARD"
@@ -66,7 +66,7 @@ resource "google_storage_bucket_iam_member" "allow_anonymous_reads" {
 }
 
 resource "google_storage_bucket_iam_member" "public_access" {
-  bucket     = "near-onemil-artefact-store"
+  bucket     = google_storage_bucket.near_onemil_artefact_store.name
   role       = "roles/storage.objectViewer"
   member     = "allUsers"
   depends_on = [google_storage_bucket.near_onemil_artefact_store]
