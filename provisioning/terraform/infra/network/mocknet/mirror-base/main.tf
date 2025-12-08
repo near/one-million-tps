@@ -50,10 +50,10 @@ resource "google_storage_bucket" "near_onemil_artefact_store" {
   force_destroy = true
 }
 
-resource "google_storage_bucket_iam_member" "allow_anonymous_uploads" {
+resource "google_storage_bucket_iam_member" "allow_node_writes" {
   bucket     = google_storage_bucket.near_onemil_artefact_store.name
-  role       = "roles/storage.objectCreator"
-  member     = "allUsers"
+  role       = "roles/storage.objectAdmin"
+  member     = "serviceAccount:${google_service_account.near_node_sa.email}"
   depends_on = [google_storage_bucket.near_onemil_artefact_store]
 }
 
@@ -130,6 +130,8 @@ module "mocknet-validator" {
   machine_count               = each.value
   monitoring_nodes_per_region = var.cv_monitoring_nodes_per_region
   zones                       = lookup(var.cv_zones_per_region, each.key, null)
+
+  node_service_account = google_service_account.near_node_sa
 }
 
 module "mocknet-producer" {
@@ -166,6 +168,15 @@ module "mocknet-producer" {
   machine_count               = each.value
   monitoring_nodes_per_region = var.cp_monitoring_nodes_per_region
   zones                       = lookup(var.zones_per_region, each.key, null)
+
+  node_service_account = google_service_account.near_node_sa
+}
+
+resource "google_service_account" "near_node_sa" {
+  account_id   = "near-node"
+  description  = "near node service account"
+  display_name = "near-node"
+  project      = var.project_id
 }
 
 locals {

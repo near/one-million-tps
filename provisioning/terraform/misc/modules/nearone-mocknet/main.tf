@@ -129,5 +129,10 @@ resource "google_compute_instance" "mocknet_instance" {
   )
 
   tags = var.tags
+
+  service_account {
+    email  = var.node_service_account.email
+    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
 }
 

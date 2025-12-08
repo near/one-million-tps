@@ -119,3 +119,7 @@ variable "zones" {
 variable "mocknet_network" {
   default = null
 }
+
+variable "node_service_account" {
+  default = null
+}
