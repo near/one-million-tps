@@ -267,7 +267,7 @@ journalctl -u prometheus
 ```
 
 #### Enable debug logs in the python scripts
-Search for `logging.INFO` in the `nearcore` repository and replace all occurrences with `logging.DEBUG`.
+Search for `logging.INFO` in this repository and replace all occurrences with `logging.DEBUG`.
 
 #### Don't ignore errors in the python scripts
 
