@@ -145,8 +145,6 @@ export NEARD_BINARY_URL="https://storage.googleapis.com/${MOCKNET_STORE_PATH#gs:
 One may use the `4-shards` case to experiment with the setup without incurring significant costs. The corresponding terraform files for the 4-shard setup is in `onemilnet-small`.
 
 ### 7. Upload the `neard` binary to all nodes.
-The binary is ~87MB and there are 140 nodes, uploading it can take some time.
-To monitor progress you can watch network traffic using `nload`.
 
 ```bash
 # Upload the binary
