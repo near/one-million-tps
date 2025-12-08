@@ -62,14 +62,6 @@ resource "google_storage_bucket_iam_member" "allow_anonymous_reads" {
   role       = "roles/storage.objectViewer"
   member     = "allUsers"
   depends_on = [google_storage_bucket.near_onemil_artefact_store]
-
-}
-
-resource "google_storage_bucket_iam_member" "public_access" {
-  bucket     = google_storage_bucket.near_onemil_artefact_store.name
-  role       = "roles/storage.objectViewer"
-  member     = "allUsers"
-  depends_on = [google_storage_bucket.near_onemil_artefact_store]
 }
 
 data "google_compute_zones" "available" {
