@@ -33,6 +33,18 @@ This is an estimate, the actual cost may vary and GCP pricing can change over ti
 
 Note that starting up the network using the following instructions takes about an hour.
 
+### 4-node test network
+
+This repository also contains configuration files for a smaller 4-node network that can be used to
+experiment with the setup without incurring significant costs.
+
+To use the smaller network:
+* Instead of using terraform from the `onemilnet-official` folder, use the one in `onemilnet-small`
+* export `CASE=cases/forknet/4-shards/` instead of `CASE=cases/forknet/70-shards/`
+
+Keep in mind that the 4-node network can't run at the same time as the 70-node network. Destroy the
+previous network before creating a new one.
+
 ## Instructions
 
 ### 1. Google cloud setup
@@ -40,7 +52,7 @@ Note that starting up the network using the following instructions takes about a
 The network runs on google cloud VMs. We provide the terraform to create the VMs, but there are some setup steps needed before running terraform:
 
 1. Acquire a google cloud account
-2. Create a google cloud project which will contain the network.
+2. Create a google cloud project which will contain the network, give the project a unique name that's unlikely to conflict with others.
 3. Enable Compute Engine API for this project
 4. Install the `gcloud` CLI tool and connect it to the google account. You should be able to run `gcloud compute instances list --project <GOOGLE CLOUD PROJECT NAME>`
 5. Install terraform
@@ -137,16 +149,12 @@ export CASE=cases/forknet/70-shards/
 export BINARY=files/neard # Location of built binary
 export MOCKNET_PROJECT=<GOOGLE CLOUD PROJECT NAME>
 export MOCKNET_ID=onemilnet-bench # This is the default value, should correspond to mocknet_id in main.tf.
-export MOCKNET_STORE_PATH=gs://near-onemil-artefact-store # This bucket must also match terraform value in main.tf.
+export MOCKNET_STORE_PATH="gs://near-$MOCKNET_PROJECT-artefact-store"
 export NEAR_BENCHMARK_CASES_DIR=scripts
 export NEARD_BINARY_URL="https://storage.googleapis.com/${MOCKNET_STORE_PATH#gs://}/neard"
 ```
 
-One may use the `4-shards` case to experiment with the setup without incurring significant costs. The corresponding terraform files for the 4-shard setup is in `onemilnet-small`.
-
 ### 7. Upload the `neard` binary to all nodes.
-The binary is ~87MB and there are 140 nodes, uploading it can take some time.
-To monitor progress you can watch network traffic using `nload`.
 
 ```bash
 # Upload the binary
@@ -269,7 +277,7 @@ journalctl -u prometheus
 ```
 
 #### Enable debug logs in the python scripts
-Search for `logging.INFO` in the `nearcore` repository and replace all occurrences with `logging.DEBUG`.
+Search for `logging.INFO` in this repository and replace all occurrences with `logging.DEBUG`.
 
 #### Don't ignore errors in the python scripts
 
