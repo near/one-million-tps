@@ -33,6 +33,18 @@ This is an estimate, the actual cost may vary and GCP pricing can change over ti
 
 Note that starting up the network using the following instructions takes about an hour.
 
+### 4-node test network
+
+This repository also contains configuration files for a smaller 4-node network that can be used to
+experiment with the setup without incurring significant costs.
+
+To use the smaller network:
+* Instead of using terraform from the `onemilnet-official` folder, use the one in `onemilnet-small`
+* export `CASE=cases/forknet/4-shards/` instead of `CASE=cases/forknet/70-shards/`
+
+Keep in mind that the 4-node network can't run at the same time as the 70-node network. Destroy the
+previous network before creating a new one.
+
 ## Instructions
 
 ### 1. Google cloud setup
@@ -141,8 +153,6 @@ export MOCKNET_STORE_PATH="gs://near-$MOCKNET_PROJECT-artefact-store"
 export NEAR_BENCHMARK_CASES_DIR=scripts
 export NEARD_BINARY_URL="https://storage.googleapis.com/${MOCKNET_STORE_PATH#gs://}/neard"
 ```
-
-One may use the `4-shards` case to experiment with the setup without incurring significant costs. The corresponding terraform files for the 4-shard setup is in `onemilnet-small`.
 
 ### 7. Upload the `neard` binary to all nodes.
 
