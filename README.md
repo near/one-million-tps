@@ -41,6 +41,7 @@ experiment with the setup without incurring significant costs.
 To use the smaller network:
 * Instead of using terraform from the `onemilnet-official` folder, use the one in `onemilnet-small`
 * export `CASE=cases/forknet/4-shards/` instead of `CASE=cases/forknet/70-shards/`
+* Use `--select-partition 1/4` instead of `--select-partition 1/140` when uploading the binary
 
 Keep in mind that the 4-node network can't run at the same time as the 70-node network. Destroy the
 previous network before creating a new one.
@@ -157,8 +158,12 @@ export NEARD_BINARY_URL="https://storage.googleapis.com/${MOCKNET_STORE_PATH#gs:
 ### 7. Upload the `neard` binary to all nodes.
 
 ```bash
-# Upload the binary
-gcloud storage cp $BINARY $MOCKNET_STORE_PATH/neard
+# Upload the binary from the local computer to one node
+python3 scripts/mocknet/mirror.py --mocknet-id $MOCKNET_ID --select-partition 1/140 upload-file --src files/neard --dst neard
+# Upload the binary from the node to a GCP bucket
+python3 scripts/mocknet/mirror.py --mocknet-id $MOCKNET_ID --select-partition 1/140 run-cmd --cmd "gcloud storage cp neard $MOCKNET_STORE_PATH/neard"
+
+# Download the binary on all nodes
 python3 scripts/mocknet/mirror.py --mocknet-id $MOCKNET_ID run-cmd --cmd "gsutil cp ${MOCKNET_STORE_PATH}/neard ."
 # Mark it as executable
 python3 scripts/mocknet/mirror.py --mocknet-id $MOCKNET_ID run-cmd --cmd 'chmod +x neard'
@@ -177,6 +182,13 @@ Install `neard-runner` on all nodes. It takes care of running `neard` on the nod
 python3 scripts/mocknet/mirror.py --mocknet-id $MOCKNET_ID init-neard-runner --neard-binary-url "$NEARD_BINARY_URL" --neard-upgrade-binary-url ""
 ```
 
+### 10. Init the benchmark
+Init benchmark state on all nodes.
+
+```bash
+python3 scripts/mocknet/sharded_bm.py --mocknet-id $MOCKNET_ID init --neard-binary-url "$NEARD_BINARY_URL"
+```
+
 At some point it will print out this output repeatedly. This is fine, don't cancel the command:
 ```bash
 INFO: Found 140 instances with mocknet_id=onemilnet-bench
@@ -185,13 +197,6 @@ INFO: Found 140 instances with mocknet_id=onemilnet-bench
 INFO: Searching for instances with mocknet_id=onemilnet-bench in project=onemilnet-testing (all zones)
 INFO: Found 140 instances with mocknet_id=onemilnet-bench
 ...
-```
-
-### 10. Init the benchmark
-Init benchmark state on all nodes.
-
-```bash
-python3 scripts/mocknet/sharded_bm.py --mocknet-id $MOCKNET_ID init --neard-binary-url "$NEARD_BINARY_URL"
 ```
 
 ### 11. Run the benchmark
