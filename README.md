@@ -182,6 +182,13 @@ Install `neard-runner` on all nodes. It takes care of running `neard` on the nod
 python3 scripts/mocknet/mirror.py --mocknet-id $MOCKNET_ID init-neard-runner --neard-binary-url "$NEARD_BINARY_URL" --neard-upgrade-binary-url ""
 ```
 
+### 10. Init the benchmark
+Init benchmark state on all nodes.
+
+```bash
+python3 scripts/mocknet/sharded_bm.py --mocknet-id $MOCKNET_ID init --neard-binary-url "$NEARD_BINARY_URL"
+```
+
 At some point it will print out this output repeatedly. This is fine, don't cancel the command:
 ```bash
 INFO: Found 140 instances with mocknet_id=onemilnet-bench
@@ -190,13 +197,6 @@ INFO: Found 140 instances with mocknet_id=onemilnet-bench
 INFO: Searching for instances with mocknet_id=onemilnet-bench in project=onemilnet-testing (all zones)
 INFO: Found 140 instances with mocknet_id=onemilnet-bench
 ...
-```
-
-### 10. Init the benchmark
-Init benchmark state on all nodes.
-
-```bash
-python3 scripts/mocknet/sharded_bm.py --mocknet-id $MOCKNET_ID init --neard-binary-url "$NEARD_BINARY_URL"
 ```
 
 ### 11. Run the benchmark
